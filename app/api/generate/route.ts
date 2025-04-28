@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { PingResponse, PostResponse } from "../../types";
 import OpenAI from "openai";
 import fs from "fs";
+import path from "path";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function GET(): Promise<NextResponse<PingResponse>> {
@@ -17,24 +18,45 @@ export async function POST(request: Request) {
 
     if (!prompt) {
       return NextResponse.json(
-        { error: 'Prompt is required' },
+        { error: "Prompt is required" },
         { status: 400 }
       );
     }
+
+    // Create system prompt + user input
+    const systemPrompt = `
+    You are creating a pixel art walking animaiton for a 32x32 sprite.
+    The walking animation will be rendered in four frames. All frames must fit within the resulting image.
+    Your output must match the layout of the reference image, but with the user requested style and design.
     
-    const result = await openai.images.generate({
+    User input: 
+    '''
+    ${prompt}
+    '''
+    `;
+
+    // Add the base image to the request
+    const imagePath = path.join(
+      process.cwd(),
+      "app/api/generate/assets/base-walk.png"
+    );
+    const buf = await fs.promises.readFile(imagePath);
+    const file = new File([buf], "base-walk.png", { type: "image/png" });
+
+    // Use OpenAI edit api to generate the sequence
+    const result = await openai.images.edit({
+      image: file,
+      prompt: systemPrompt,
       model: "gpt-image-1",
-      prompt: prompt,
       size: "1024x1024",
-      background: "transparent",
-      quality: "high"
+      quality: "medium",
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error generating image:', error);
+    console.error("Error generating image:", error);
     return NextResponse.json(
-      { error: 'Failed to generate image' },
+      { error: "Failed to generate image" },
       { status: 500 }
     );
   }
