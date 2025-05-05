@@ -63,3 +63,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+//// todo:
+// prompt engineer a way to segreate the 4 images and allow user to click an image tio regenerate using the other images as reference
