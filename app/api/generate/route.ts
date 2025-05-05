@@ -14,7 +14,7 @@ export async function GET(): Promise<NextResponse<PingResponse>> {
 
 export async function POST(request: Request) {
   try {
-    const { prompt } = await request.json();
+    const { prompt, resolution } = await request.json();
 
     if (!prompt) {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     // Create system prompt + user input
     const systemPrompt = `
-    You are creating a pixel art walking animaiton for a 32x32 sprite.
+    You are creating a pixel art walking animaiton for a character sprite using a ${resolution} resolution.
     The walking animation will be rendered in four frames. All frames must fit within the resulting image.
     Your output must match the layout of the reference image, but with the user requested style and design.
     
@@ -34,6 +34,8 @@ export async function POST(request: Request) {
     ${prompt}
     '''
     `;
+
+    console.log('System prompt being sent to OpenAI:', systemPrompt);
 
     // Add the base image to the request
     const imagePath = path.join(
