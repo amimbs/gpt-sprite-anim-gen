@@ -43,7 +43,8 @@ export async function POST(request: Request) {
       "app/api/generate/assets/base-walk.png"
     );
     const buf = await fs.promises.readFile(imagePath);
-    const file = new File([buf], "base-walk.png", { type: "image/png" });
+    const uint8Array = new Uint8Array(buf);
+    const file = new File([uint8Array], "base-walk.png", { type: "image/png" });
 
     // Use OpenAI edit api to generate the sequence
     const result = await openai.images.edit({
